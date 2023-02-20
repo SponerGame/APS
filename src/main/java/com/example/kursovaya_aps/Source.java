@@ -1,5 +1,6 @@
 package com.example.kursovaya_aps;
 
+import java.util.ArrayList;
 import java.util.Scanner;
 
 public class Source{
@@ -8,6 +9,8 @@ public class Source{
     int source_id;
 
     int currentTaskID;
+
+    int tasksRemain;
 
     public int getCurrentTaskID() {
         return currentTaskID;
@@ -50,12 +53,20 @@ public class Source{
     }
 
     Task task;
+
+
+
     Source(double generate_time, int source_id) {
         status=1;
         this.generate_time=generate_time;
         this.task = new Task(1,0,source_id);
         this.source_id=source_id;
         this.currentTaskID=task.taskID;
+        //Main.tasksNum--;
+        //Statistics.tasksNum++;
+        Statistics.allTasks.add(this.task);
+        this.tasksRemain=Main.tasksNum;
+        this.tasksRemain--;
         // Создаём новый поток
         //super("Второй поток");
         //System.out.println("Thread1");
@@ -71,11 +82,16 @@ public class Source{
     }
 
     void nextTask(){
-        generate_time+=0.4;
+        if((generate_time=Main.tasks_gen_times.pollFirst())==0){
+            System.out.println(Main.current_time);
+        }
+        //generate_time=Main.tasks_gen_times.pollFirst();
         int taskID=this.task.taskID;
         this.task=new Task(taskID+1,0,source_id);
         this.currentTaskID=task.taskID;
-        Main.tasksNum--;
+        this.tasksRemain--;
+        //Statistics.tasksNum++;
+        Statistics.allTasks.add(this.task);
     }
 
     public void run() {

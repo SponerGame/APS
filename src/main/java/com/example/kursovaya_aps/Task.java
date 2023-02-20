@@ -3,9 +3,16 @@ package com.example.kursovaya_aps;
 public class Task {
     int taskID;
     int taskParentID;
-    int status; //1-ready to go //0-finished
+
+    int taskDeviceID;
+    int status; //0-norm to go //1-finished //2-canceled
 
     String taskINFO;
+
+    double buffTime;
+    double buffInTime;
+    double buffOutTime;
+    double deviceTime;
 
 
 

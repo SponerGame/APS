@@ -17,19 +17,23 @@ public class Buffer {
         return false;
     }
 
-    static void add(Task task){
+    static void add(Task task,double time){
         if(current_size<max_size){
             current_size++;
+            task.buffInTime=time;
             buffer.addFirst(task);
         }else {
-            buffer.pollFirst();
+            Task task1 = buffer.pollFirst();
+            task1.buffOutTime=time;
+            task1.status=2;
             buffer.addFirst(task);
         }
     }
-    static void removeLast(){
+    static void removeLast(double time){
         if(current_size>0){
             current_size--;
-            buffer.pollLast();
+            Task task = buffer.pollLast();
+            task.buffOutTime=time;
         }
     }
     static Task peek(Task task){

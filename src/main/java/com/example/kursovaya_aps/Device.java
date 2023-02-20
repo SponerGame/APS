@@ -13,6 +13,8 @@ public class Device{
     double event_time=-1;
     double work_time;
 
+    double all_work_time;
+
     String taskINFO;
 
     Device(int id,double work_time) {
@@ -44,6 +46,10 @@ public class Device{
         event_time=nextEventTime;
         event_time+=work_time;
         taskINFO=task.taskINFO;
+        this.task.deviceTime=work_time;
+        this.task.status=1;
+        this.task.taskDeviceID=this.id;
+        this.all_work_time+=work_time;
     }
 
     public void setFree(){
@@ -51,6 +57,7 @@ public class Device{
         this.task=null;
         event_time=-1;
         taskINFO="Свободно";
+        this.work_time=(-1/Main.lambda)*Math.log(Math.random());
     }
 
     public void run() {

@@ -1,6 +1,7 @@
 package com.example.kursovaya_aps;
 
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.ResourceBundle;
 import javafx.fxml.FXML;
@@ -16,7 +17,13 @@ public class InterfaceController {
     private URL location;
 
     @FXML
+    private Button btn_generate_auto;
+
+    @FXML
     private Button btn_next_step;
+
+    @FXML
+    private Button btn_setUp;
 
     @FXML
     private TextField input_a;
@@ -58,6 +65,15 @@ public class InterfaceController {
     private TableColumn<Device, Integer> table_device_id;
 
     @FXML
+    private TableView<DeviceStat> table_device_stat;
+
+    @FXML
+    private TableColumn<DeviceStat, String> table_device_stat_coef;
+
+    @FXML
+    private TableColumn<DeviceStat, String> table_device_stat_id;
+
+    @FXML
     private TableColumn<Device, String> table_device_status;
 
     @FXML
@@ -68,6 +84,33 @@ public class InterfaceController {
 
     @FXML
     private TableView<Device> table_devices;
+
+    @FXML
+    private TableView<SourceStat> table_source_stat;
+
+    @FXML
+    private TableColumn<SourceStat, String> table_source_stat_Disp_buff;
+
+    @FXML
+    private TableColumn<SourceStat, String> table_source_stat_Disp_work;
+
+    @FXML
+    private TableColumn<SourceStat, String> table_source_stat_Pcanceled;
+
+    @FXML
+    private TableColumn<SourceStat, String> table_source_stat_T_Buffer;
+
+    @FXML
+    private TableColumn<SourceStat, String> table_source_stat_T_avg;
+
+    @FXML
+    private TableColumn<SourceStat, String> table_source_stat_T_device;
+
+    @FXML
+    private TableColumn<SourceStat, String> table_source_stat_id;
+
+    @FXML
+    private TableColumn<SourceStat, String> table_source_stat_taskNum;
 
     @FXML
     private TableView<Source> table_sources;
@@ -117,8 +160,49 @@ public class InterfaceController {
         }
     }
 
+    void device_stat_table_init(){ ///доделать чтобы был id прибора
+        table_device_stat.getItems().clear();
+
+        //ArrayList<DeviceStat> deviceStats = new ArrayList<>();
+        for (var i : Statistics.DeviceStatistic.keySet()){
+            DeviceStat deviceStat = new DeviceStat();
+            deviceStat.deviceID= i;
+            deviceStat.usageCoef=Statistics.DeviceStatistic.get(i)/Main.lastTimeEvent;
+            table_device_stat.getItems().add(deviceStat);
+        }
+    }
+
+    void source_stat_table_init(){
+        for (var i : Statistics.ParentStatistic.keySet()){
+            SourceStat sourceStat = new SourceStat();
+            sourceStat.sourceID=i;
+            sourceStat.tasksNum = Statistics.ParentStatistic.get(i).taskNum;
+            sourceStat.cancelP = (double) Statistics.ParentStatistic.get(i).taskCanceledNum/(Statistics.ParentStatistic.get(i).taskNum);
+            System.out.println(Statistics.ParentStatistic.get(i).taskCanceledNum%Statistics.ParentStatistic.get(i).taskNum);
+            sourceStat.avgAllTime = Statistics.ParentStatistic.get(i).allTime/Statistics.ParentStatistic.get(i).taskNum;
+            sourceStat.avgTimeBuff = Statistics.ParentStatistic.get(i).buffTime/Statistics.ParentStatistic.get(i).taskNum;
+            sourceStat.avgTimeDevice = Statistics.ParentStatistic.get(i).deviceTime/Statistics.ParentStatistic.get(i).taskNum;
+            sourceStat.BuffDisp = Math.pow(Statistics.ParentStatistic.get(i).buffTime,2)/Statistics.ParentStatistic.get(i).taskNum;
+            sourceStat.DeviceDisp = Math.pow(Statistics.ParentStatistic.get(i).deviceTime,2)/Statistics.ParentStatistic.get(i).taskNum;
+            table_source_stat.getItems().add(sourceStat);
+        }
+    }
+
     @FXML
     void initialize() {
+
+        btn_setUp.setOnAction(actionEvent -> {
+            Main.sourcesNum=Integer.parseInt(input_source_num.getText());
+            Main.bufferNum=Integer.parseInt(input_buffer_num.getText());
+            Main.devicesNum=Integer.parseInt(input_device_num.getText());
+            Main.lambda=Integer.parseInt(input_lamda_num.getText());
+            Main.tasksNum=Integer.parseInt(input_simulation_time.getText());
+            Main.left_bord=Integer.parseInt(input_a.getText());
+            Main.right_bord=Integer.parseInt(input_b.getText());
+        });
+
+
+
         source_table_init();
         device_table_init();
         buffer_table_init();
@@ -154,6 +238,34 @@ public class InterfaceController {
         //table_buffer_id.setCellValueFactory(new PropertyValueFactory<Task,Integer>("id"));
         table_buffer_task.setCellValueFactory(new PropertyValueFactory<Task,String>("taskINFO"));
         table_buffer_status.setCellValueFactory(new PropertyValueFactory<Task,String>("status"));
+
+        table_device_stat_id.setCellValueFactory(new PropertyValueFactory<DeviceStat,String>("deviceID"));
+        table_device_stat_coef.setCellValueFactory(new PropertyValueFactory<DeviceStat,String>("usageCoef"));
+
+        table_source_stat_id.setCellValueFactory(new PropertyValueFactory<SourceStat,String>("sourceID"));
+        table_source_stat_taskNum.setCellValueFactory(new PropertyValueFactory<SourceStat,String>("tasksNum"));
+        table_source_stat_Pcanceled.setCellValueFactory(new PropertyValueFactory<SourceStat,String>("cancelP"));
+        table_source_stat_T_avg.setCellValueFactory(new PropertyValueFactory<SourceStat,String>("avgAllTime"));
+        table_source_stat_T_Buffer.setCellValueFactory(new PropertyValueFactory<SourceStat,String>("avgTimeBuff"));
+        table_source_stat_T_device.setCellValueFactory(new PropertyValueFactory<SourceStat,String>("avgTimeDevice"));
+        table_source_stat_Disp_buff.setCellValueFactory(new PropertyValueFactory<SourceStat,String>("BuffDisp"));
+        table_source_stat_Disp_work.setCellValueFactory(new PropertyValueFactory<SourceStat,String>("DeviceDisp"));
+
+
+        btn_generate_auto.setOnAction(actionEvent -> {
+            Main.auto();
+            synchronized (this){
+                try {
+                    wait(5000);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+            device_stat_table_init();
+            source_stat_table_init();
+        });
+
+
 
 
         //table_buffer_id.setCellValueFactory(new PropertyValueFactory<Task,Integer>(""));
